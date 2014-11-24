@@ -18,11 +18,6 @@ iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
 # Needed to allow OpenStack managed VM's to recieve dhcp assignments from Neutron vDHCP servers
 iptables -A POSTROUTING -t mangle -p udp --dport bootpc -j CHECKSUM --checksum-fill
 
-# install git
-echo "Installing GIT"
-apt-get update -y
-apt-get install -y git
-
 # clone devstack repo localy
 echo "Cloning DevStack repo"
 cd /opt
@@ -34,7 +29,7 @@ cd devstack
 git checkout stable/icehouse
 
 # add local.conf to /opt/devstack folder
-cp /vagrant/local.conf /opt/devstack/
+cp /opt/os_install/local.conf /opt/devstack/
 
 # create stack user using devstack's provided script
 /opt/devstack/tools/create-stack-user.sh
