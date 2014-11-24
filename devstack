@@ -1,0 +1,72 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          DevStack
+# Required-Start:    $local_fs $network $named $time $syslog
+# Required-Stop:     $local_fs $network $named $time $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Description:       "Starts and stops the DevStack instance."
+### END INIT INFO
+
+start() {
+  # enable ip forwarding
+  sudo sysctl -w net.ipv4.ip_forward=1
+
+  # set ip address for eth2 to 0.0.0.0
+  ifconfig eth2 0.0.0.0
+
+  # turn on promiscuous mode on eth2 (172.24.4.x)
+  ifconfig eth2 promisc
+
+  # enable eth2 
+  ip link set dev eth2 up
+
+  # reset bridges
+  ip addr flush br-ex
+  ip addr add 172.24.4.2/24 dev br-ex
+  ip link set br-ex up
+  route add -net 10.0.0.0/24 gw 172.24.4.2
+
+  # set iptables SNAT routes on eth0 and eth1
+  iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+  iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+  # Needed to allow OpenStack managed VM's to recieve dhcp assignments from Neutron vDHCP servers
+  iptables -A POSTROUTING -t mangle -p udp --dport bootpc -j CHECKSUM --checksum-fill
+
+  # attach stack-volumes
+  losetup /dev/loop0 /opt/stack/data/stack-volumes-backing-file
+
+  echo 'Starting DevStack' >&2
+  su -c "screen -dm -c /opt/devstack/stack-screenrc" - stack
+  echo 'DevStack started' >&2
+}
+
+stop() {
+  # if screenrc exists, run screen
+  if [ ! -e /opt/devstack/stack-screenrc ]; then
+    if ! screen -ls | egrep -q "[0-9].stack"; then
+      echo 'DevStack not running' >&2
+      return 1
+    fi
+  fi
+  echo 'Stopping DevStack…' >&2
+  # Don't run unstack.sh as it screws up the br-ex configuration
+  #su -c "/opt/devstack/unstack.sh" - stack
+  echo 'DevStack stopped' >&2
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  retart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+esac
