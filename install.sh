@@ -126,6 +126,6 @@ nova flavor-create m1.xlarge auto 2048 10 2
 keystone tenant-delete invisible_to_admin
 
 # add devstack to init.d so it will automatically start/stop with the machine
-cp /opt/os /etc/init.d/devstack
+cp /opt/os_install/devstack /etc/init.d/devstack
 chmod +x /etc/init.d/devstack
 update-rc.d devstack defaults 98 02
