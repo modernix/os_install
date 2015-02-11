@@ -12,14 +12,14 @@ start() {
   # enable ip forwarding
   sudo sysctl -w net.ipv4.ip_forward=1
 
-  # set ip address for eth2 to 0.0.0.0
-  ifconfig eth2 0.0.0.0
+  # set ip address for eth1 to 0.0.0.0
+  ifconfig eth1 0.0.0.0
 
-  # turn on promiscuous mode on eth2 (172.24.4.x)
-  ifconfig eth2 promisc
+  # turn on promiscuous mode on eth1 (172.24.4.x)
+  ifconfig eth1 promisc
 
-  # enable eth2 
-  ip link set dev eth2 up
+  # enable eth1 
+  ip link set dev eth1 up
 
   # reset bridges
   ip addr flush br-ex
@@ -29,7 +29,7 @@ start() {
 
   # set iptables SNAT routes on eth0 and eth1
   iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-  iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+  #iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
 
   # Needed to allow OpenStack managed VM's to recieve dhcp assignments from Neutron vDHCP servers
   iptables -A POSTROUTING -t mangle -p udp --dport bootpc -j CHECKSUM --checksum-fill

@@ -2,7 +2,7 @@
 
 # elevate our status in the world
 #sudo -i
-HOST_NAME="os.local"
+HOST_NAME="devstack.local"
 
 hostname $HOST_NAME
 sed -i "s/stackinabox/$HOST_NAME/g" /etc/hostname
@@ -13,7 +13,7 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
 # SNAT the '192.168.27.x' network so OpenStack managed VMs can route to any other ip running in the same subnet
-iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+#iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
 
 # Needed to allow OpenStack managed VM's to recieve dhcp assignments from Neutron vDHCP servers
 iptables -A POSTROUTING -t mangle -p udp --dport bootpc -j CHECKSUM --checksum-fill
@@ -37,21 +37,21 @@ cp /opt/os_install/local.conf /opt/devstack/
 # make stack user owner of /opt/devstack
 chown -R stack:stack /opt/devstack
 
-# set ip address for eth2 to 0.0.0.0
-ifconfig eth2 0.0.0.0
+# set ip address for eth1 to 0.0.0.0
+ifconfig eth1 0.0.0.0
 
-# turn on promiscuous mode on eth2 (172.24.4.x)
-ifconfig eth2 promisc
+# turn on promiscuous mode on eth1 (172.24.4.x)
+ifconfig eth1 promisc
 
-# enable eth2 
-ip link set dev eth2 up
+# enable eth1 
+ip link set dev eth1 up
 
 # gentelmen start your engines
 echo "Installing DevStack"
 sudo -u stack -H ./stack.sh
 
-# add eth2 as a port on the bridge
-ovs-vsctl add-port br-ex eth2
+# add eth1 as a port on the bridge
+ovs-vsctl add-port br-ex eth1
 
 # assign ip to br-ex
 ifconfig br-ex 172.24.4.2
@@ -116,6 +116,9 @@ nova flavor-create m1.medium auto 1024 10 1
 nova flavor-create m1.large auto 1536 10 2
 nova flavor-create m1.xlarge auto 2048 10 2
 
+nova aggregate-create test-aggregate1
+nova aggregate-create test-aggregate2 test-az
+nova aggregate-add-host 2 devstack
 # add admin role to admin user in the demo tenant
 #keystone user-role-add --user admin --role admin --tenant demo
 
