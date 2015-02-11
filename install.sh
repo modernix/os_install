@@ -116,6 +116,9 @@ nova flavor-create m1.medium auto 1024 10 1
 nova flavor-create m1.large auto 1536 10 2
 nova flavor-create m1.xlarge auto 2048 10 2
 
+nova aggregate-create test-aggregate1
+nova aggregate-create test-aggregate2 test-az
+nova aggregate-add-host 2 devstack
 # add admin role to admin user in the demo tenant
 #keystone user-role-add --user admin --role admin --tenant demo
 
